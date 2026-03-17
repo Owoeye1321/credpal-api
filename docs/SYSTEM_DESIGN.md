@@ -152,12 +152,11 @@ The notification system applies the **Liskov Substitution Principle** — email 
                            └──────────────────┘
 ```
 
-### Schema Details (8 tables)
+### Schema Details (7 tables)
 
 | Table | Purpose | Key Constraints |
 |-------|---------|----------------|
 | `users` | User accounts | email UNIQUE |
-| `otps` | Email verification codes | FK user_id, expires_at for TTL |
 | `wallets` | One wallet per user | user_id UNIQUE |
 | `wallet_balances` | Currency balances per wallet | UNIQUE(wallet_id, currency) |
 | `ledger_entries` | Append-only audit trail | FK wallet_balance_id, transaction_id |
