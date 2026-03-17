@@ -1,0 +1,1404 @@
+{
+  "info": {
+    "_postman_id": "802d7c5f-bde3-428b-a508-8b747da3274a",
+    "name": "CredPal FX Trading API",
+    "description": "Full API collection for the CredPal FX Trading platform.\n\n## Workflow\n1. **Register** → saves `verificationToken` automatically\n2. **Verify Email** → saves `accessToken` automatically\n3. Use authenticated endpoints (wallet, trading, fx, transactions)\n\n## Authentication\nAll protected endpoints use Bearer token auth. The token is auto-saved from Login and Verify responses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53205313",
+    "_collection_link": "https://go.postman.co/collection/53205313-802d7c5f-bde3-428b-a508-8b747da3274a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.verificationToken) {",
+                  "    pm.environment.set('verificationToken', body.verificationToken);",
+                  "    console.log('Saved verificationToken:', body.verificationToken);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owoeye1321@gmail.com\",\n  \"password\": \"Password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user. Returns a `verificationToken` — check your email/logs for the OTP code.\n\nThe `verificationToken` is auto-saved to the environment."
+          },
+          "response": [
+            {
+              "name": "Register",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"owoeye1321@gmail.com\",\n  \"password\": \"Password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "148"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"94-6S98+uOBObJ1dgZHLD3RjPzn27Q\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:07:33 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Registration successful. Please check your email for the verification code.\",\n    \"verificationToken\": \"665a03c5-34ad-4f0a-9501-7eb7d18f0a29\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.accessToken) {",
+                  "    pm.environment.set('accessToken', body.accessToken);",
+                  "    console.log('Saved accessToken');",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verificationToken\": \"{{verificationToken}}\",\n  \"otp\": \"271103\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify"
+              ]
+            },
+            "description": "Verify email with the OTP sent during registration. Replace `otp` with the actual code from your email/logs.\n\nThe `accessToken` is auto-saved to the environment on success."
+          },
+          "response": [
+            {
+              "name": "Verify Email",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"verificationToken\": \"{{verificationToken}}\",\n  \"otp\": \"271103\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "verify"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "283"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"11b-XR9BsHolXX1uGJV8rEa8aoZIF2g\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:08:37 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYjI1NmIyOS1iODM2LTQyODktYjg1NS02NWMzOTAyYTJjZmUiLCJlbWFpbCI6Im93b2V5ZTEzMjFAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzM3ODUzMTcsImV4cCI6MTc3Mzc4ODkxN30.PXNo4Hqs-4Jbd6XpH6Rs7DwUHFF36wA2B8u531B7prs\",\n    \"expiresIn\": \"1h\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.accessToken) {",
+                  "    pm.environment.set('accessToken', body.accessToken);",
+                  "    console.log('Saved accessToken');",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owoeye1321@gmail.com\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login with email and password. Returns a JWT access token.\n\nThe `accessToken` is auto-saved to the environment on success."
+          },
+          "response": [
+            {
+              "name": "Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"owoeye1321@gmail.com\",\n  \"password\": \"Password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "283"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"11b-mun0Nf8ShpwAvd8sD/whK8GrllE\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:08:59 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYjI1NmIyOS1iODM2LTQyODktYjg1NS02NWMzOTAyYTJjZmUiLCJlbWFpbCI6Im93b2V5ZTEzMjFAZ21haWwuY29tIiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NzM3ODUzMzksImV4cCI6MTc3Mzc4ODkzOX0.oNn5ewN11QSAWEIWydHblhMCnCNo0rKhP_7ke8_wIE4\",\n    \"expiresIn\": \"1h\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Resend OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body.verificationToken) {",
+                  "    pm.environment.set('verificationToken', body.verificationToken);",
+                  "    console.log('Saved new verificationToken:', body.verificationToken);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verificationToken\": \"{{verificationToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/resend-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "resend-otp"
+              ]
+            },
+            "description": "Resend a new OTP using the verification token from registration. Returns a new `verificationToken` (the old one is invalidated).\n\nThe new `verificationToken` is auto-saved to the environment."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints — register, verify email, login, resend OTP."
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Get Balances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet"
+              ]
+            },
+            "description": "Get all wallet balances for the authenticated user. Returns balances for each currency held."
+          },
+          "response": [
+            {
+              "name": "Get Balances",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/wallet",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "wallet"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "281"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"119-CSLoAGDd6eKfi8J6azjxhGlT0dg\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:09:25 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"currency\": \"NGN\",\n        \"availableBalance\": \"0.0000\",\n        \"heldBalance\": \"0.0000\"\n    },\n    {\n        \"currency\": \"USD\",\n        \"availableBalance\": \"0.0000\",\n        \"heldBalance\": \"0.0000\"\n    },\n    {\n        \"currency\": \"EUR\",\n        \"availableBalance\": \"0.0000\",\n        \"heldBalance\": \"0.0000\"\n    },\n    {\n        \"currency\": \"GBP\",\n        \"availableBalance\": \"0.0000\",\n        \"heldBalance\": \"0.0000\"\n    }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Fund Wallet (NGN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique key to prevent duplicate funding. Auto-generated UUID."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/fund",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet",
+                "fund"
+              ]
+            },
+            "description": "Fund your NGN wallet. Amount is in Naira.\n\nIncludes an `Idempotency-Key` header (auto-generated UUID) to prevent duplicate transactions."
+          },
+          "response": [
+            {
+              "name": "Fund Wallet (NGN)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}",
+                    "description": "Unique key to prevent duplicate funding. Auto-generated UUID."
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"amount\": 50000\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/fund",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "wallet",
+                    "fund"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "136"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"88-znzDF1SC50kFqWsymhqnzPteYpY\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:10:23 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Wallet funded successfully\",\n    \"balance\": \"350000.0000\",\n    \"currency\": \"NGN\",\n    \"transactionId\": \"a5e8ed81-f285-42f5-a3a5-741bcce778f1\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Wallet management — view balances and fund your NGN wallet."
+    },
+    {
+      "name": "Trading",
+      "item": [
+        {
+          "name": "Trade (Buy Foreign Currency)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique key to prevent duplicate trades."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"BUY\",\n  \"currency\": \"USD\",\n  \"amount\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/trade",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet",
+                "trade"
+              ]
+            },
+            "description": "Buy foreign currency with NGN. Specify the foreign currency and amount you want to buy.\n\n`recipientWalletId` is optional for BUY transactions.\n\nExample: BUY 100 USD = debit NGN equivalent, credit 100 USD."
+          },
+          "response": [
+            {
+              "name": "Trade (Buy Foreign Currency)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}",
+                    "description": "Unique key to prevent duplicate trades."
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"BUY\",\n  \"currency\": \"USD\",\n  \"amount\": 100\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/trade",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "wallet",
+                    "trade"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "272"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"110-yP5GOL5ZG3WGGiuPcgMFfnCUPuA\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:15:30 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"transactionId\": \"b1c64548-a33c-4b34-8927-071a1fc741f3\",\n    \"type\": \"TRADE\",\n    \"sourceCurrency\": \"NGN\",\n    \"targetCurrency\": \"USD\",\n    \"sourceAmount\": \"137485.3900\",\n    \"targetAmount\": \"100\",\n    \"exchangeRate\": \"0.00072735\",\n    \"fee\": \"0.0000\",\n    \"status\": \"COMPLETED\",\n    \"completedAt\": \"2026-03-17T22:15:30.414Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Trade (Sell Foreign Currency)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique key to prevent duplicate trades."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"SELL\",\n  \"currency\": \"USD\",\n  \"amount\": 20,\n  \"recipientWalletId\":\"ujuhjduuuhubfhuhy849r78648798uhf\"\n\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/trade",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet",
+                "trade"
+              ]
+            },
+            "description": "Sell foreign currency for NGN. Specify the foreign currency and amount you want to sell.\n\n`recipientWalletId` is **required** for SELL transactions.\n\nExample: SELL 50 USD = debit 50 USD, credit NGN equivalent."
+          },
+          "response": [
+            {
+              "name": "Trade (Sell Foreign Currency)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}",
+                    "description": "Unique key to prevent duplicate trades."
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"action\": \"SELL\",\n  \"currency\": \"USD\",\n  \"amount\": 50,\n  \"recipientWalletId\": \"ujuhjduuuhubfhuhy849r78648798uhf\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/trade",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "wallet",
+                    "trade"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "266"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"10a-PNfDAL2dzPYTP87JPkkeML34Atg\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:16:06 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"transactionId\": \"73ed0c8e-1118-41f5-b241-1502d64852c1\",\n    \"type\": \"TRADE\",\n    \"sourceCurrency\": \"USD\",\n    \"targetCurrency\": \"NGN\",\n    \"sourceAmount\": \"50\",\n    \"targetAmount\": \"0.0364\",\n    \"exchangeRate\": \"0.00072735\",\n    \"fee\": \"0.0000\",\n    \"status\": \"COMPLETED\",\n    \"completedAt\": \"2026-03-17T22:16:06.255Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Convert Currency",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique key to prevent duplicate conversions."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromCurrency\": \"USD\",\n  \"toCurrency\": \"EUR\",\n  \"amount\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallet/convert",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "wallet",
+                "convert"
+              ]
+            },
+            "description": "Convert between any two currencies (including NGN). Cross-pair conversions bridge through NGN automatically.\n\nExamples:\n- USD → EUR (cross-pair)\n- NGN → USD (direct)\n- GBP → NGN (direct)"
+          },
+          "response": [
+            {
+              "name": "Convert Currency",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}",
+                    "description": "Unique key to prevent duplicate conversions."
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fromCurrency\": \"USD\",\n  \"toCurrency\": \"EUR\",\n  \"amount\": 50\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/wallet/convert",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "wallet",
+                    "convert"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "268"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"10c-Z5Je7/NB+OsObQxX5ItGtC8V4fo\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:19:11 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"transactionId\": \"46d2d3b6-5791-442d-bf5f-e35a88fb7129\",\n    \"type\": \"CONVERSION\",\n    \"sourceCurrency\": \"USD\",\n    \"targetCurrency\": \"EUR\",\n    \"sourceAmount\": \"50\",\n    \"targetAmount\": \"43.4619\",\n    \"exchangeRate\": \"0.8692\",\n    \"fee\": \"0.0000\",\n    \"status\": \"COMPLETED\",\n    \"completedAt\": \"2026-03-17T22:19:11.323Z\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Buy/sell foreign currency against NGN, or convert between any two currencies."
+    },
+    {
+      "name": "FX Rates",
+      "item": [
+        {
+          "name": "Get All Rates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/fx/rates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fx",
+                "rates"
+              ]
+            },
+            "description": "Get all FX rates with NGN as the base currency. Returns rates for USD, EUR, GBP, and all other supported currencies."
+          },
+          "response": [
+            {
+              "name": "Get All Rates",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/fx/rates",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "fx",
+                    "rates"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "526"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"20e-vau6FVDFT2P0d8W0ClzK5FoCYI8\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:13:28 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"baseCurrency\": \"NGN\",\n        \"targetCurrency\": \"USD\",\n        \"rate\": \"0.00072735\",\n        \"inverseRate\": \"1374.8539\",\n        \"source\": \"EXCHANGERATE_API\",\n        \"fetchedAt\": \"2026-03-17T00:00:01.000Z\",\n        \"isStale\": false\n    },\n    {\n        \"baseCurrency\": \"NGN\",\n        \"targetCurrency\": \"EUR\",\n        \"rate\": \"0.00063224\",\n        \"inverseRate\": \"1581.6778\",\n        \"source\": \"EXCHANGERATE_API\",\n        \"fetchedAt\": \"2026-03-17T00:00:01.000Z\",\n        \"isStale\": false\n    },\n    {\n        \"baseCurrency\": \"NGN\",\n        \"targetCurrency\": \"GBP\",\n        \"rate\": \"0.00054614\",\n        \"inverseRate\": \"1831.0323\",\n        \"source\": \"EXCHANGERATE_API\",\n        \"fetchedAt\": \"2026-03-17T00:00:01.000Z\",\n        \"isStale\": false\n    }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Get Rate (Specific Pair)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/fx/rates?base=NGN&target=USD",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fx",
+                "rates"
+              ],
+              "query": [
+                {
+                  "key": "base",
+                  "value": "NGN",
+                  "description": "Base currency (default: NGN)"
+                },
+                {
+                  "key": "target",
+                  "value": "USD",
+                  "description": "Target currency"
+                }
+              ]
+            },
+            "description": "Get the FX rate for a specific currency pair."
+          },
+          "response": [
+            {
+              "name": "Get Rate (Specific Pair)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/fx/rates?base=NGN&target=USD",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "fx",
+                    "rates"
+                  ],
+                  "query": [
+                    {
+                      "key": "base",
+                      "value": "NGN",
+                      "description": "Base currency (default: NGN)"
+                    },
+                    {
+                      "key": "target",
+                      "value": "USD",
+                      "description": "Target currency"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "176"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"b0-MR6nnW6hOs55iQnC7vkRvaj4UHk\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:15:19 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"baseCurrency\": \"NGN\",\n        \"targetCurrency\": \"USD\",\n        \"rate\": \"0.00072735\",\n        \"inverseRate\": \"1374.8539\",\n        \"source\": \"EXCHANGERATE_API\",\n        \"fetchedAt\": \"2026-03-17T00:00:01.000Z\",\n        \"isStale\": false\n    }\n]"
+            }
+          ]
+        }
+      ],
+      "description": "Get live foreign exchange rates."
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Get All Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions"
+              ]
+            },
+            "description": "Get paginated transaction history for the authenticated user. Default: page 1, limit 20."
+          },
+          "response": [
+            {
+              "name": "Get All Transactions",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/transactions",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "4555"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"11cb-KPq0v9eqNTB+hF1PIaAa/6C35FA\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:19:39 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"data\": [\n        {\n            \"id\": \"46d2d3b6-5791-442d-bf5f-e35a88fb7129\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"CONVERSION\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"EUR\",\n            \"sourceAmount\": \"50.0000\",\n            \"targetAmount\": \"43.4619\",\n            \"exchangeRate\": \"0.86920000\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:19:11.319Z\",\n            \"completedAt\": \"2026-03-17T22:19:11.323Z\"\n        },\n        {\n            \"id\": \"0087a5d3-548f-4a9d-918c-1bcf5e1180ec\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"68742.6950\",\n            \"targetAmount\": \"50.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:19:01.370Z\",\n            \"completedAt\": \"2026-03-17T22:19:01.374Z\"\n        },\n        {\n            \"id\": \"fa8eda2d-b4aa-4b35-91b4-dafd583f7e0e\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"137485.3900\",\n            \"targetAmount\": \"100.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:18:46.216Z\",\n            \"completedAt\": \"2026-03-17T22:18:46.221Z\"\n        },\n        {\n            \"id\": \"49b4b52c-0987-419f-90c1-f8379b76d383\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"NGN\",\n            \"sourceAmount\": \"20.0000\",\n            \"targetAmount\": \"0.0145\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:16:59.175Z\",\n            \"completedAt\": \"2026-03-17T22:16:59.178Z\"\n        },\n        {\n            \"id\": \"73ed0c8e-1118-41f5-b241-1502d64852c1\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"NGN\",\n            \"sourceAmount\": \"50.0000\",\n            \"targetAmount\": \"0.0364\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:16:06.249Z\",\n            \"completedAt\": \"2026-03-17T22:16:06.255Z\"\n        },\n        {\n            \"id\": \"b1c64548-a33c-4b34-8927-071a1fc741f3\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"137485.3900\",\n            \"targetAmount\": \"100.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:15:30.406Z\",\n            \"completedAt\": \"2026-03-17T22:15:30.414Z\"\n        },\n        {\n            \"id\": \"a5e8ed81-f285-42f5-a3a5-741bcce778f1\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:23.890Z\",\n            \"completedAt\": \"2026-03-17T22:10:23.892Z\"\n        },\n        {\n            \"id\": \"c5771e07-8358-4547-9e8e-6e2783274d14\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:23.268Z\",\n            \"completedAt\": \"2026-03-17T22:10:23.270Z\"\n        },\n        {\n            \"id\": \"df88decd-474a-4981-a73c-7883ec11d6aa\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:22.759Z\",\n            \"completedAt\": \"2026-03-17T22:10:22.762Z\"\n        },\n        {\n            \"id\": \"8f91a796-cc3e-4a93-b599-51e862d431b3\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:22.238Z\",\n            \"completedAt\": \"2026-03-17T22:10:22.241Z\"\n        },\n        {\n            \"id\": \"7888f422-b951-4b1a-acfb-f4f57b729f90\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:21.509Z\",\n            \"completedAt\": \"2026-03-17T22:10:21.512Z\"\n        },\n        {\n            \"id\": \"2626e173-1d0b-4ed3-a143-8b9890ea88a9\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:19.333Z\",\n            \"completedAt\": \"2026-03-17T22:10:19.338Z\"\n        },\n        {\n            \"id\": \"93483491-e0a6-4215-86d2-13a14e27e0ab\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:09:51.117Z\",\n            \"completedAt\": \"2026-03-17T22:09:51.130Z\"\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 20,\n        \"total\": 13,\n        \"totalPages\": 1\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Transactions (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?type=TRADE&status=COMPLETED&page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "TRADE",
+                  "description": "Filter by type: FUNDING, TRADE, CONVERSION"
+                },
+                {
+                  "key": "status",
+                  "value": "COMPLETED",
+                  "description": "Filter by status: PENDING, COMPLETED, FAILED, REVERSED"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page (default: 20, max: 100)"
+                }
+              ]
+            },
+            "description": "Get filtered transaction history. All query parameters are optional."
+          },
+          "response": [
+            {
+              "name": "Get Transactions (Filtered)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/transactions?type=TRADE&status=COMPLETED&page=1&limit=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "TRADE",
+                      "description": "Filter by type: FUNDING, TRADE, CONVERSION"
+                    },
+                    {
+                      "key": "status",
+                      "value": "COMPLETED",
+                      "description": "Filter by status: PENDING, COMPLETED, FAILED, REVERSED"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Page number (default: 1)"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Items per page (default: 20, max: 100)"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1820"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"71c-OA5xfYMrOtnGyR4YvFwEcpH10ks\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:19:47 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"data\": [\n        {\n            \"id\": \"0087a5d3-548f-4a9d-918c-1bcf5e1180ec\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"68742.6950\",\n            \"targetAmount\": \"50.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:19:01.370Z\",\n            \"completedAt\": \"2026-03-17T22:19:01.374Z\"\n        },\n        {\n            \"id\": \"fa8eda2d-b4aa-4b35-91b4-dafd583f7e0e\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"137485.3900\",\n            \"targetAmount\": \"100.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:18:46.216Z\",\n            \"completedAt\": \"2026-03-17T22:18:46.221Z\"\n        },\n        {\n            \"id\": \"49b4b52c-0987-419f-90c1-f8379b76d383\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"NGN\",\n            \"sourceAmount\": \"20.0000\",\n            \"targetAmount\": \"0.0145\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:16:59.175Z\",\n            \"completedAt\": \"2026-03-17T22:16:59.178Z\"\n        },\n        {\n            \"id\": \"73ed0c8e-1118-41f5-b241-1502d64852c1\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"NGN\",\n            \"sourceAmount\": \"50.0000\",\n            \"targetAmount\": \"0.0364\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:16:06.249Z\",\n            \"completedAt\": \"2026-03-17T22:16:06.255Z\"\n        },\n        {\n            \"id\": \"b1c64548-a33c-4b34-8927-071a1fc741f3\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"137485.3900\",\n            \"targetAmount\": \"100.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:15:30.406Z\",\n            \"completedAt\": \"2026-03-17T22:15:30.414Z\"\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 5,\n        \"totalPages\": 1\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Transactions (Date Range)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?dateFrom=2024-01-01&dateTo=2026-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "dateFrom",
+                  "value": "2024-01-01",
+                  "description": "Start date (ISO format)"
+                },
+                {
+                  "key": "dateTo",
+                  "value": "2026-12-31",
+                  "description": "End date (ISO format)"
+                }
+              ]
+            },
+            "description": "Get transactions within a specific date range."
+          },
+          "response": [
+            {
+              "name": "Get Transactions (Date Range)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/transactions?dateFrom=2024-01-01&dateTo=2026-12-31",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ],
+                  "query": [
+                    {
+                      "key": "dateFrom",
+                      "value": "2024-01-01",
+                      "description": "Start date (ISO format)"
+                    },
+                    {
+                      "key": "dateTo",
+                      "value": "2026-12-31",
+                      "description": "End date (ISO format)"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Powered-By",
+                  "value": "Express"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "4555"
+                },
+                {
+                  "key": "ETag",
+                  "value": "W/\"11cb-KPq0v9eqNTB+hF1PIaAa/6C35FA\""
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 17 Mar 2026 22:19:54 GMT"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=5"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"data\": [\n        {\n            \"id\": \"46d2d3b6-5791-442d-bf5f-e35a88fb7129\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"CONVERSION\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"EUR\",\n            \"sourceAmount\": \"50.0000\",\n            \"targetAmount\": \"43.4619\",\n            \"exchangeRate\": \"0.86920000\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:19:11.319Z\",\n            \"completedAt\": \"2026-03-17T22:19:11.323Z\"\n        },\n        {\n            \"id\": \"0087a5d3-548f-4a9d-918c-1bcf5e1180ec\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"68742.6950\",\n            \"targetAmount\": \"50.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:19:01.370Z\",\n            \"completedAt\": \"2026-03-17T22:19:01.374Z\"\n        },\n        {\n            \"id\": \"fa8eda2d-b4aa-4b35-91b4-dafd583f7e0e\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"137485.3900\",\n            \"targetAmount\": \"100.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:18:46.216Z\",\n            \"completedAt\": \"2026-03-17T22:18:46.221Z\"\n        },\n        {\n            \"id\": \"49b4b52c-0987-419f-90c1-f8379b76d383\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"NGN\",\n            \"sourceAmount\": \"20.0000\",\n            \"targetAmount\": \"0.0145\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:16:59.175Z\",\n            \"completedAt\": \"2026-03-17T22:16:59.178Z\"\n        },\n        {\n            \"id\": \"73ed0c8e-1118-41f5-b241-1502d64852c1\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"USD\",\n            \"targetCurrency\": \"NGN\",\n            \"sourceAmount\": \"50.0000\",\n            \"targetAmount\": \"0.0364\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:16:06.249Z\",\n            \"completedAt\": \"2026-03-17T22:16:06.255Z\"\n        },\n        {\n            \"id\": \"b1c64548-a33c-4b34-8927-071a1fc741f3\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"TRADE\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": \"USD\",\n            \"sourceAmount\": \"137485.3900\",\n            \"targetAmount\": \"100.0000\",\n            \"exchangeRate\": \"0.00072735\",\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:15:30.406Z\",\n            \"completedAt\": \"2026-03-17T22:15:30.414Z\"\n        },\n        {\n            \"id\": \"a5e8ed81-f285-42f5-a3a5-741bcce778f1\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:23.890Z\",\n            \"completedAt\": \"2026-03-17T22:10:23.892Z\"\n        },\n        {\n            \"id\": \"c5771e07-8358-4547-9e8e-6e2783274d14\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:23.268Z\",\n            \"completedAt\": \"2026-03-17T22:10:23.270Z\"\n        },\n        {\n            \"id\": \"df88decd-474a-4981-a73c-7883ec11d6aa\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:22.759Z\",\n            \"completedAt\": \"2026-03-17T22:10:22.762Z\"\n        },\n        {\n            \"id\": \"8f91a796-cc3e-4a93-b599-51e862d431b3\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:22.238Z\",\n            \"completedAt\": \"2026-03-17T22:10:22.241Z\"\n        },\n        {\n            \"id\": \"7888f422-b951-4b1a-acfb-f4f57b729f90\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:21.509Z\",\n            \"completedAt\": \"2026-03-17T22:10:21.512Z\"\n        },\n        {\n            \"id\": \"2626e173-1d0b-4ed3-a143-8b9890ea88a9\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:10:19.333Z\",\n            \"completedAt\": \"2026-03-17T22:10:19.338Z\"\n        },\n        {\n            \"id\": \"93483491-e0a6-4215-86d2-13a14e27e0ab\",\n            \"userId\": \"db256b29-b836-4289-b855-65c3902a2cfe\",\n            \"type\": \"FUNDING\",\n            \"status\": \"COMPLETED\",\n            \"sourceCurrency\": \"NGN\",\n            \"targetCurrency\": null,\n            \"sourceAmount\": \"50000.0000\",\n            \"targetAmount\": null,\n            \"exchangeRate\": null,\n            \"fee\": \"0.0000\",\n            \"createdAt\": \"2026-03-17T22:09:51.117Z\",\n            \"completedAt\": \"2026-03-17T22:09:51.130Z\"\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 20,\n        \"total\": 13,\n        \"totalPages\": 1\n    }\n}"
+            }
+          ]
+        }
+      ],
+      "description": "View transaction history with filtering and pagination."
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  }
+}

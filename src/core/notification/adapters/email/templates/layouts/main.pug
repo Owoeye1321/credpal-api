@@ -1,0 +1,121 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    meta(http-equiv="X-UA-Compatible" content="IE=edge")
+    title #{title || 'CredPal'}
+    style.
+      body, table, td, p, a, li, blockquote {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f7fa;
+        color: #333333;
+        line-height: 1.6;
+      }
+      .email-wrapper {
+        width: 100%;
+        background-color: #f4f7fa;
+        padding: 40px 0;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .email-header {
+        background: linear-gradient(135deg, #1E3A5F 0%, #2B5A8F 100%);
+        padding: 30px 40px;
+        text-align: center;
+      }
+      .email-header h1 {
+        color: #ffffff;
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+      }
+      .email-header .logo {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        background-color: #ffffff;
+        color: #1E3A5F;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 40px;
+        text-align: center;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+      .email-body {
+        padding: 40px 60px;
+      }
+      .email-footer {
+        background-color: #f8fafc;
+        padding: 30px 40px;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+      }
+      .email-footer p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .email-footer a {
+        color: #1E3A5F;
+        text-decoration: none;
+      }
+      .otp-code {
+        background-color: #EBF2FA;
+        border: 2px dashed #1E3A5F;
+        border-radius: 8px;
+        padding: 32px 20px;
+        text-align: center;
+        margin: 25px 0;
+      }
+      .otp-code .code {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1E3A5F;
+        letter-spacing: 8px;
+        font-family: 'Courier New', monospace;
+      }
+      .highlight-box {
+        background-color: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 15px 20px;
+        margin: 20px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .highlight-box p {
+        margin: 0;
+        color: #92400e;
+        font-size: 14px;
+      }
+  body
+    .email-wrapper
+      .email-container
+        //- Header
+        header.email-header
+          .logo C
+          h1 CredPal
+
+        //- Body content (to be filled by child templates)
+        main.email-body(style="padding: 40px 60px 30px 60px;")
+          block content
+
+        //- Footer
+        footer.email-footer
+          p &copy; #{new Date().getFullYear()} CredPal. All rights reserved.
+          p
+            | Need help?&nbsp;
+            a(href="mailto:support@credpal.com") Contact Support
