@@ -4,6 +4,8 @@ REST API for foreign exchange trading — register, fund wallets, buy/sell curre
 
 Built with **NestJS 11** | **TypeScript 5.7** | **PostgreSQL 15** | **Redis 7** | **Jest 30**
 
+> **System Design Document** — For a deep dive into architecture, flow diagrams, data models, scaling strategy, and trade-offs, see [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md).
+
 ---
 
 ## Table of Contents
@@ -220,8 +222,6 @@ A `DomainException` base class is caught by a global exception filter and mapped
   "timestamp": "2026-03-17T22:15:30.000Z"
 }
 ```
-
-> For the full system design document, see [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md).
 
 ---
 

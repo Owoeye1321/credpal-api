@@ -23,21 +23,21 @@ The system follows **Clean Architecture** combined with **Domain-Driven Design (
 
 ### Layer Structure
 
-```mermaid
-graph TD
-    A["REST Controllers<br/><i>Swagger-documented</i>"]
-    B["Use Cases / Services<br/><i>Business orchestration</i>"]
-    C["Domain Entities & Value Objects<br/><i>Business rules, validation, errors</i>"]
-    D["Ports & Adapters<br/><i>TypeORM Repos, Redis, Email, FX API</i>"]
+```
+┌─────────────────────────────────────────────────────┐
+│           REST Controllers (Swagger-documented)      │  ← Infrastructure
+├─────────────────────────────────────────────────────┤
+│         Use Cases / Services (Business orchestration)│  ← Application
+├─────────────────────────────────────────────────────┤
+│   Domain Entities & Value Objects (Business rules)   │  ← Domain
+├─────────────────────────────────────────────────────┤
+│     Ports & Adapters (TypeORM, Redis, Email, FX API) │  ← Infrastructure
+└─────────────────────────────────────────────────────┘
 
-    A -->|"calls"| B
-    B -->|"uses"| C
-    B -->|"depends on"| D
-
-    style A fill:#4a90d9,stroke:#333,color:#fff
-    style B fill:#7b68ee,stroke:#333,color:#fff
-    style C fill:#f0ad4e,stroke:#333,color:#000
-    style D fill:#5cb85c,stroke:#333,color:#fff
+         Controllers ──▶ Services ──▶ Domain
+                             │
+                             ▼
+                      Ports & Adapters
 ```
 
 ### Module Structure
@@ -79,18 +79,17 @@ A single `@Global() CoreModule` bundles all cross-cutting infrastructure:
 
 The notification system applies the **Liskov Substitution Principle** — email and SMS adapters implement the same `INotificationService` interface. Any adapter can be swapped without changing consuming code:
 
-```mermaid
-graph TD
-    Port["INotificationService<br/><i>Port / Interface</i>"]
-    Email["ResendNotificationAdapter<br/><i>Resend API</i>"]
-    SMS["SmsNotificationAdapter<br/><i>Stub, ready for provider</i>"]
-
-    Port --- Email
-    Port --- SMS
-
-    style Port fill:#f0ad4e,stroke:#333,color:#000
-    style Email fill:#5cb85c,stroke:#333,color:#fff
-    style SMS fill:#999,stroke:#333,color:#fff
+```
+         ┌──────────────────────────┐
+         │   INotificationService   │  ← Port / Interface
+         │        (abstract)        │
+         └────────┬─────────┬───────┘
+                  │         │
+        ┌─────────▼──┐  ┌──▼──────────────┐
+        │   Resend    │  │   SMS Adapter    │
+        │  Adapter    │  │  (stub, ready    │
+        │ (Resend API)│  │   for provider)  │
+        └─────────────┘  └─────────────────┘
 ```
 
 ---
@@ -99,112 +98,58 @@ graph TD
 
 ### Entity-Relationship Diagram
 
-```mermaid
-erDiagram
-    users ||--o{ otps : "has"
-    users ||--|| wallets : "owns"
-    wallets ||--o{ wallet_balances : "contains"
-    wallet_balances ||--o{ ledger_entries : "tracks"
-    users ||--o{ transactions : "performs"
-    transactions ||--o{ ledger_entries : "generates"
-    transactions }o--|| fx_rate_snapshots : "references"
-    users ||--o{ idempotency_keys : "creates"
-
-    users {
-        uuid id PK
-        varchar email UK
-        varchar password_hash
-        varchar first_name
-        varchar last_name
-        varchar role
-        boolean is_email_verified
-        boolean is_active
-        timestamptz created_at
-        timestamptz updated_at
-    }
-
-    otps {
-        uuid id PK
-        uuid user_id FK
-        varchar code
-        varchar type
-        timestamptz expires_at
-        boolean is_used
-        timestamptz created_at
-    }
-
-    wallets {
-        uuid id PK
-        uuid user_id FK_UK
-        varchar status
-        timestamptz created_at
-        timestamptz updated_at
-    }
-
-    wallet_balances {
-        uuid id PK
-        uuid wallet_id FK
-        varchar currency
-        decimal available_balance
-        decimal held_balance
-        timestamptz created_at
-        timestamptz updated_at
-    }
-
-    ledger_entries {
-        uuid id PK
-        uuid wallet_balance_id FK
-        uuid transaction_id FK
-        varchar type
-        decimal amount
-        decimal balance_after
-        varchar description
-        timestamptz created_at
-    }
-
-    transactions {
-        uuid id PK
-        uuid user_id FK
-        varchar idempotency_key UK
-        varchar type
-        varchar status
-        varchar source_currency
-        varchar target_currency
-        decimal source_amount
-        decimal target_amount
-        decimal exchange_rate
-        uuid exchange_rate_id FK
-        decimal fee
-        jsonb metadata
-        timestamptz completed_at
-        timestamptz created_at
-        timestamptz updated_at
-    }
-
-    fx_rate_snapshots {
-        uuid id PK
-        varchar base_currency
-        varchar target_currency
-        decimal rate
-        decimal inverse_rate
-        varchar source
-        timestamptz fetched_at
-        timestamptz created_at
-    }
-
-    idempotency_keys {
-        uuid id PK
-        varchar key UK
-        uuid user_id
-        varchar endpoint
-        varchar request_hash
-        int response_status
-        jsonb response_body
-        varchar status
-        timestamptz expires_at
-        timestamptz created_at
-        timestamptz updated_at
-    }
+```
+┌──────────────┐       ┌──────────────────┐       ┌──────────────────┐
+│    users     │       │     wallets      │       │ wallet_balances  │
+├──────────────┤       ├──────────────────┤       ├──────────────────┤
+│ id (PK)      │──1:1──│ id (PK)          │──1:N──│ id (PK)          │
+│ email (UK)   │       │ user_id (FK, UK) │       │ wallet_id (FK)   │
+│ password_hash│       │ status           │       │ currency         │
+│ first_name   │       │ created_at       │       │ available_balance│
+│ last_name    │       │ updated_at       │       │ held_balance     │
+│ role         │       └──────────────────┘       │ created_at       │
+│ is_email_    │                                  │ updated_at       │
+│   verified   │                                  └────────┬─────────┘
+│ is_active    │                                           │
+│ created_at   │                                          1:N
+│ updated_at   │                                           │
+└──────┬───────┘                                  ┌────────▼─────────┐
+       │                                          │  ledger_entries  │
+      1:N                                         ├──────────────────┤
+       │                                          │ id (PK)          │
+┌──────▼───────────┐                              │ wallet_balance_id│
+│   transactions   │──1:N─────────────────────────│ transaction_id   │
+├──────────────────┤                              │ type (DEBIT/     │
+│ id (PK)          │                              │   CREDIT)        │
+│ user_id (FK)     │                              │ amount           │
+│ idempotency_key  │       ┌──────────────────┐   │ balance_after    │
+│ type             │──N:1──│fx_rate_snapshots  │   │ description      │
+│ status           │       ├──────────────────┤   │ created_at       │
+│ source_currency  │       │ id (PK)          │   └──────────────────┘
+│ target_currency  │       │ base_currency    │
+│ source_amount    │       │ target_currency  │
+│ target_amount    │       │ rate             │
+│ exchange_rate    │       │ inverse_rate     │
+│ exchange_rate_id │       │ source           │
+│ fee              │       │ fetched_at       │
+│ metadata (jsonb) │       │ created_at       │
+│ completed_at     │       └──────────────────┘
+│ created_at       │
+│ updated_at       │       ┌──────────────────┐
+└──────────────────┘       │ idempotency_keys │
+       │                   ├──────────────────┤
+      1:N                  │ id (PK)          │
+       │                   │ key (UK)         │
+       └───────────────────│ user_id          │
+                           │ endpoint         │
+                           │ request_hash     │
+                           │ response_status  │
+                           │ response_body    │
+                           │ status           │
+                           │ expires_at       │
+                           │ created_at       │
+                           │ updated_at       │
+                           └──────────────────┘
 ```
 
 ### Schema Details (8 tables)
@@ -230,41 +175,54 @@ Exchange rates use `decimal(18,8)` for higher precision in rate calculations.
 
 ## 3. Authentication Flow
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-    participant R as Redis
-    participant E as Email (Resend)
-
-    rect rgb(230, 245, 255)
-    Note over C,E: Registration
-    C->>S: POST /auth/register {email, password, name}
-    S->>S: Validate input (Email VO, Password VO)
-    S->>R: Store encrypted OTP (AES-256-GCM, 10min TTL)
-    S->>E: Send OTP email
-    S-->>C: 201 {message, verificationToken}
-    end
-
-    rect rgb(230, 255, 230)
-    Note over C,E: Email Verification
-    C->>S: POST /auth/verify {verificationToken, otp}
-    S->>R: Retrieve & decrypt OTP
-    S->>S: Validate OTP (not expired)
-    S->>S: Create user in DB
-    S->>S: Create wallet + 4 currency balances
-    S->>S: Generate JWT
-    S-->>C: 200 {accessToken, expiresIn}
-    end
-
-    rect rgb(255, 245, 230)
-    Note over C,S: Login
-    C->>S: POST /auth/login {email, password}
-    S->>S: Verify credentials (bcrypt)
-    S->>S: Check isEmailVerified
-    S->>S: Generate JWT
-    S-->>C: 200 {accessToken, expiresIn}
-    end
+```
+  Client                    Server                   Redis              Email (Resend)
+    │                         │                        │                      │
+    │   ┌─── Registration ────────────────────────────────────────────────┐   │
+    │   │                                                                 │   │
+    │   POST /auth/register   │                        │                  │   │
+    ├──{email, password, name}▶│                        │                  │   │
+    │   │                     │  Validate input         │                  │   │
+    │   │                     │  (Email VO, Password VO)│                  │   │
+    │   │                     │                         │                  │   │
+    │   │                     │  Store encrypted OTP    │                  │   │
+    │   │                     ├─(AES-256-GCM, 10min)───▶│                  │   │
+    │   │                     │                         │                  │   │
+    │   │                     │  Send OTP email          │                 │   │
+    │   │                     ├──────────────────────────────────────────▶ │   │
+    │   │                     │                         │                  │   │
+    │◀──201 {message, token}──┤                         │                  │   │
+    │   └─────────────────────────────────────────────────────────────────┘   │
+    │                         │                        │                      │
+    │   ┌─── Verification ────────────────────────────────────────────────┐   │
+    │   │                                                                 │   │
+    │   POST /auth/verify     │                        │                  │   │
+    ├──{token, otp}──────────▶│                        │                  │   │
+    │   │                     │  Retrieve & decrypt OTP │                  │   │
+    │   │                     ├────────────────────────▶│                  │   │
+    │   │                     │◀───── OTP data ─────────┤                  │   │
+    │   │                     │                        │                   │   │
+    │   │                     │  Validate OTP           │                  │   │
+    │   │                     │  Create user in DB      │                  │   │
+    │   │                     │  Create wallet +        │                  │   │
+    │   │                     │    4 currency balances  │                  │   │
+    │   │                     │  Generate JWT           │                  │   │
+    │   │                     │                        │                   │   │
+    │◀──200 {accessToken}─────┤                        │                   │   │
+    │   └─────────────────────────────────────────────────────────────────┘   │
+    │                         │                        │                      │
+    │   ┌─── Login ───────────────────────────────────────────────────────┐   │
+    │   │                                                                 │   │
+    │   POST /auth/login      │                        │                  │   │
+    ├──{email, password}─────▶│                        │                  │   │
+    │   │                     │  Verify credentials     │                  │   │
+    │   │                     │  (bcrypt)               │                  │   │
+    │   │                     │  Check isEmailVerified  │                  │   │
+    │   │                     │  Generate JWT           │                  │   │
+    │   │                     │                        │                   │   │
+    │◀──200 {accessToken}─────┤                        │                   │   │
+    │   └─────────────────────────────────────────────────────────────────┘   │
+    │                         │                        │                      │
 ```
 
 ### OTP Design
@@ -284,39 +242,43 @@ sequenceDiagram
 
 ### Balance + Ledger Hybrid Model
 
-```mermaid
-graph TD
-    WB["<b>wallet_balances</b><br/>Materialized balance per currency<br/><br/>NGN: 500,000.0000<br/>USD: 250.0000<br/>EUR: 0.0000<br/>GBP: 100.0000"]
-    LE["<b>ledger_entries</b><br/>Append-only audit trail<br/><br/>CREDIT 50,000 → 500,000 (funding)<br/>DEBIT 37,500 → 462,500 (buy USD)<br/>CREDIT 250 → 250 (buy USD)"]
-
-    WB <-->|"updated atomically<br/>in same transaction"| LE
-
-    style WB fill:#4a90d9,stroke:#333,color:#fff
-    style LE fill:#5cb85c,stroke:#333,color:#fff
+```
+┌───────────────────────────────┐    ┌───────────────────────────────────┐
+│      wallet_balances          │    │         ledger_entries            │
+│   (materialized balance)      │    │     (append-only audit trail)     │
+│                               │    │                                   │
+│  NGN: 500,000.0000            │◀──▶│  CREDIT 50,000  → 500,000 (fund) │
+│  USD: 250.0000                │    │  DEBIT  37,500  → 462,500 (trade)│
+│  EUR: 0.0000                  │    │  CREDIT 250     → 250 (trade)    │
+│  GBP: 100.0000                │    │                                   │
+└───────────────────────────────┘    └───────────────────────────────────┘
+            ▲                                     ▲
+            └──── updated atomically in ──────────┘
+                  same DB transaction
 ```
 
 ### Wallet Management Lifecycle
 
-```mermaid
-flowchart LR
-    A["Email Verified"] --> B["Wallet Created"]
-    B --> C["4 Balances Initialized<br/>NGN, USD, EUR, GBP<br/>(all 0.0000)"]
-
-    C --> D{"Operation"}
-    D -->|"POST /wallet/fund"| E["Credit NGN Balance"]
-    D -->|"POST /wallet/trade"| F["Debit Source<br/>Credit Target"]
-    D -->|"POST /wallet/convert"| G["Debit From Currency<br/>Credit To Currency"]
-
-    E --> H["Ledger Entry<br/>CREDIT"]
-    F --> I["2 Ledger Entries<br/>DEBIT + CREDIT"]
-    G --> I
-
-    style A fill:#f0ad4e,stroke:#333,color:#000
-    style B fill:#4a90d9,stroke:#333,color:#fff
-    style C fill:#5cb85c,stroke:#333,color:#fff
-    style D fill:#7b68ee,stroke:#333,color:#fff
-    style H fill:#5cb85c,stroke:#333,color:#fff
-    style I fill:#5cb85c,stroke:#333,color:#fff
+```
+                                        ┌──────────────────┐
+                                        │  Ledger Entry     │
+                                   ┌───▶│  (CREDIT)         │
+                                   │    └──────────────────┘
+┌────────────┐    ┌──────────┐    ┌▼───────────────┐
+│   Email    │───▶│  Wallet  │───▶│  4 Balances    │
+│  Verified  │    │ Created  │    │  Initialized   │
+└────────────┘    └──────────┘    │  NGN,USD,EUR,  │
+                                  │  GBP (all 0)   │
+                                  └──┬──┬──────────┘
+                                     │  │          ┌──────────────────┐
+       POST /wallet/fund ────────────┘  │     ┌───▶│  2 Ledger Entries│
+       (Credit NGN)                     │     │    │  (DEBIT + CREDIT)│
+                                        │     │    └──────────────────┘
+       POST /wallet/trade ──────────────┘     │
+       (Debit source, Credit target) ─────────┘
+                                              │
+       POST /wallet/convert ──────────────────┘
+       (Debit from, Credit to)
 ```
 
 ### Why Not Pure Ledger?
@@ -339,25 +301,44 @@ Users can only fund their wallet in NGN (Nigerian Naira). Foreign currencies (US
 
 ### 3-Tier Fallback
 
-```mermaid
-flowchart TD
-    A["Client Request<br/>GET /fx/rates"] --> B{"Tier 1<br/>Redis Cache"}
-    B -->|"HIT"| C["Return cached rates<br/>(fresh, < 10 min)"]
-    B -->|"MISS"| D{"Tier 2<br/>External API<br/>(ExchangeRate API)"}
-    D -->|"SUCCESS"| E["Cache in Redis + Save to DB"]
-    E --> F["Return fresh rates"]
-    D -->|"FAILURE"| G{"Tier 3<br/>Database Snapshot"}
-    G -->|"Found < 1 hour"| H["Return rates<br/>(with isStale flag)"]
-    G -->|"Not found / too old"| I["Throw<br/>FxRateUnavailableError"]
-
-    style A fill:#4a90d9,stroke:#333,color:#fff
-    style B fill:#f0ad4e,stroke:#333,color:#000
-    style C fill:#5cb85c,stroke:#333,color:#fff
-    style D fill:#f0ad4e,stroke:#333,color:#000
-    style F fill:#5cb85c,stroke:#333,color:#fff
-    style G fill:#f0ad4e,stroke:#333,color:#000
-    style H fill:#ff9800,stroke:#333,color:#000
-    style I fill:#d9534f,stroke:#333,color:#fff
+```
+            ┌──────────────────┐
+            │  Client Request   │
+            │  GET /fx/rates    │
+            └────────┬─────────┘
+                     │
+                     ▼
+            ┌──────────────────┐
+            │   Tier 1: Redis  │
+            │   Cache          │
+            └───┬──────────┬───┘
+                │          │
+              HIT        MISS
+                │          │
+                ▼          ▼
+      ┌─────────────┐  ┌──────────────────┐
+      │ Return cached│  │  Tier 2: External│
+      │ rates (fresh,│  │  API (ExchangeRate│
+      │ < 10 min)   │  │  API)            │
+      └─────────────┘  └───┬──────────┬───┘
+                           │          │
+                        SUCCESS    FAILURE
+                           │          │
+                           ▼          ▼
+                  ┌──────────────┐  ┌──────────────────┐
+                  │ Cache in     │  │ Tier 3: Database  │
+                  │ Redis + Save │  │ Snapshot          │
+                  │ to DB        │  └───┬──────────┬───┘
+                  │              │      │          │
+                  │ Return fresh │   Found       Not found
+                  │ rates        │  (< 1 hour)   (too old)
+                  └──────────────┘      │          │
+                                        ▼          ▼
+                                ┌────────────┐  ┌────────────────┐
+                                │ Return rates│  │ Throw           │
+                                │ (isStale    │  │ FxRateUnavail-  │
+                                │  flag set)  │  │ ableError       │
+                                └────────────┘  └────────────────┘
 ```
 
 ### Rate Staleness
@@ -377,117 +358,140 @@ Stale rates (> 15 minutes old) block trading operations to prevent users from ex
 
 ### Trade (NGN ↔ Foreign Currency)
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant TC as TradingController
-    participant UC as TradeCurrencyUseCase
-    participant FX as FxRateService
-    participant DB as PostgreSQL
-
-    C->>TC: POST /wallet/trade {action: BUY, currency: USD, amount: 100}
-    TC->>UC: execute(params)
-    UC->>FX: getRate(NGN, USD)
-    FX-->>UC: rate (validate not stale)
-    UC->>UC: Calculate NGN cost = 100 x inverseRate
-
-    rect rgb(255, 245, 230)
-    Note over UC,DB: SERIALIZABLE Transaction
-    UC->>DB: BEGIN TRANSACTION
-    UC->>DB: SELECT ... FOR UPDATE (lock NGN balance)
-    UC->>DB: Verify NGN balance >= cost
-    UC->>DB: Debit NGN balance
-    UC->>DB: Credit USD balance (create if missing)
-    UC->>DB: Insert DEBIT ledger entry (NGN)
-    UC->>DB: Insert CREDIT ledger entry (USD)
-    UC->>DB: Insert transaction record
-    UC->>DB: COMMIT
-    end
-
-    UC-->>TC: TradeResult
-    TC-->>C: 200 {transactionId, sourceAmount, targetAmount, ...}
+```
+  Client              TradingController     TradeCurrencyUseCase     FxRateService       PostgreSQL
+    │                       │                       │                     │                   │
+    │  POST /wallet/trade   │                       │                     │                   │
+    ├─{action:BUY,         ─▶                       │                     │                   │
+    │  currency:USD,        │                       │                     │                   │
+    │  amount:100}          │  execute(params)      │                     │                   │
+    │                       ├──────────────────────▶│                     │                   │
+    │                       │                       │  getRate(NGN, USD)  │                   │
+    │                       │                       ├────────────────────▶│                   │
+    │                       │                       │◀── rate (validate) ─┤                   │
+    │                       │                       │                     │                   │
+    │                       │                       │  Calculate NGN cost │                   │
+    │                       │                       │  = 100 x inverseRate│                   │
+    │                       │                       │                     │                   │
+    │                       │                   ┌───┴── SERIALIZABLE Transaction ───┐         │
+    │                       │                   │   │                               │         │
+    │                       │                   │   ├── BEGIN TRANSACTION ──────────────────▶ │
+    │                       │                   │   ├── SELECT...FOR UPDATE (lock NGN) ────▶ │
+    │                       │                   │   ├── Verify NGN balance >= cost  │         │
+    │                       │                   │   ├── Debit NGN balance ──────────────────▶ │
+    │                       │                   │   ├── Credit USD balance ─────────────────▶ │
+    │                       │                   │   ├── Insert DEBIT ledger (NGN) ──────────▶ │
+    │                       │                   │   ├── Insert CREDIT ledger (USD) ─────────▶ │
+    │                       │                   │   ├── Insert transaction record ──────────▶ │
+    │                       │                   │   ├── COMMIT ────────────────────────────▶ │
+    │                       │                   └───┤                               │         │
+    │                       │                       │                               │         │
+    │                       │◀── TradeResult ───────┤                               │         │
+    │◀─ 200 {transactionId,─┤                       │                               │         │
+    │   sourceAmount, ...}  │                       │                               │         │
 ```
 
 ### Convert (Non-NGN ↔ Non-NGN)
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant TC as TradingController
-    participant UC as ConvertCurrencyUseCase
-    participant FX as FxRateService
-    participant DB as PostgreSQL
-
-    C->>TC: POST /wallet/convert {from: EUR, to: GBP, amount: 50}
-    TC->>UC: execute(params)
-    UC->>FX: getRate(NGN, EUR)
-    FX-->>UC: EUR rate
-    UC->>FX: getRate(NGN, GBP)
-    FX-->>UC: GBP rate
-    UC->>UC: Bridge: EUR → NGN → GBP
-
-    rect rgb(255, 245, 230)
-    Note over UC,DB: SERIALIZABLE Transaction
-    UC->>DB: BEGIN TRANSACTION
-    UC->>DB: Lock EUR balance (FOR UPDATE)
-    UC->>DB: Lock GBP balance (FOR UPDATE)
-    UC->>DB: Verify EUR balance >= 50
-    UC->>DB: Debit EUR, Credit GBP
-    UC->>DB: Insert 2 ledger entries
-    UC->>DB: Insert transaction + bridge metadata
-    UC->>DB: COMMIT
-    end
-
-    UC-->>TC: ConvertResult
-    TC-->>C: 200 {transactionId, crossRate, ...}
+```
+  Client              TradingController    ConvertCurrencyUseCase    FxRateService       PostgreSQL
+    │                       │                       │                     │                   │
+    │  POST /wallet/convert │                       │                     │                   │
+    ├─{from:EUR, to:GBP,  ─▶                       │                     │                   │
+    │  amount:50}           │  execute(params)      │                     │                   │
+    │                       ├──────────────────────▶│                     │                   │
+    │                       │                       │  getRate(NGN, EUR)  │                   │
+    │                       │                       ├────────────────────▶│                   │
+    │                       │                       │◀──── EUR rate ──────┤                   │
+    │                       │                       │                     │                   │
+    │                       │                       │  getRate(NGN, GBP)  │                   │
+    │                       │                       ├────────────────────▶│                   │
+    │                       │                       │◀──── GBP rate ──────┤                   │
+    │                       │                       │                     │                   │
+    │                       │                       │  Bridge: EUR → NGN → GBP               │
+    │                       │                       │                     │                   │
+    │                       │                   ┌───┴── SERIALIZABLE Transaction ───┐         │
+    │                       │                   │   ├── BEGIN TRANSACTION ──────────────────▶ │
+    │                       │                   │   ├── Lock EUR balance (FOR UPDATE) ─────▶ │
+    │                       │                   │   ├── Lock GBP balance (FOR UPDATE) ─────▶ │
+    │                       │                   │   ├── Verify EUR balance >= 50     │        │
+    │                       │                   │   ├── Debit EUR, Credit GBP ─────────────▶ │
+    │                       │                   │   ├── Insert 2 ledger entries ────────────▶ │
+    │                       │                   │   ├── Insert transaction + metadata ──────▶ │
+    │                       │                   │   ├── COMMIT ────────────────────────────▶ │
+    │                       │                   └───┤                               │         │
+    │                       │◀── ConvertResult ─────┤                               │         │
+    │◀─ 200 {transactionId,─┤                       │                               │         │
+    │   crossRate, ...}     │                       │                               │         │
 ```
 
 Note: The NGN balance is **not affected** during conversion — it's only used as a rate calculation bridge.
 
 ### Trading Decision Flow (BUY vs SELL)
 
-```mermaid
-flowchart TD
-    A["POST /wallet/trade<br/>{action, currency, amount}"] --> B{"action?"}
-
-    B -->|"BUY"| C["Source = NGN<br/>Target = foreign currency"]
-    B -->|"SELL"| D["Source = foreign currency<br/>Target = NGN"]
-
-    C --> E["targetAmount = amount<br/>sourceAmount = amount x inverseRate"]
-    D --> F["sourceAmount = amount<br/>targetAmount = amount x rate"]
-
-    E --> G["Lock source balance<br/>(SELECT ... FOR UPDATE)"]
-    F --> G
-
-    G --> H{"Source balance<br/>sufficient?"}
-    H -->|"No"| I["Throw InsufficientBalanceError"]
-    H -->|"Yes"| J["Debit source balance"]
-    J --> K["Credit target balance<br/>(create if missing)"]
-    K --> L["Insert DEBIT + CREDIT<br/>ledger entries"]
-    L --> M["Save transaction record"]
-    M --> N["COMMIT"]
-
-    style A fill:#4a90d9,stroke:#333,color:#fff
-    style B fill:#f0ad4e,stroke:#333,color:#000
-    style I fill:#d9534f,stroke:#333,color:#fff
-    style N fill:#5cb85c,stroke:#333,color:#fff
+```
+                    POST /wallet/trade
+                    {action, currency, amount}
+                              │
+                              ▼
+                      ┌───────────────┐
+                      │   action?     │
+                      └───┬───────┬───┘
+                          │       │
+                        BUY     SELL
+                          │       │
+                          ▼       ▼
+                ┌───────────┐  ┌───────────────┐
+                │Source = NGN│  │Source = foreign│
+                │Target =   │  │Target = NGN   │
+                │ foreign   │  │               │
+                └─────┬─────┘  └───────┬───────┘
+                      │                │
+                      ▼                ▼
+            ┌──────────────┐  ┌──────────────────┐
+            │targetAmt =   │  │sourceAmt = amount│
+            │ amount       │  │targetAmt = amount│
+            │sourceAmt =   │  │ x rate           │
+            │ amt x inverse│  │                  │
+            └──────┬───────┘  └────────┬─────────┘
+                   │                   │
+                   └─────────┬─────────┘
+                             ▼
+                   ┌──────────────────┐
+                   │ Lock source      │
+                   │ (SELECT...FOR    │
+                   │  UPDATE)         │
+                   └────────┬─────────┘
+                            ▼
+                   ┌──────────────────┐
+                   │ Balance          │
+                   │ sufficient?      │
+                   └───┬──────────┬───┘
+                       │          │
+                      No         Yes
+                       │          │
+                       ▼          ▼
+            ┌────────────┐  ┌──────────────────┐
+            │ Throw       │  │ Debit source     │
+            │ Insufficient│  │ Credit target    │
+            │ BalanceError│  │ Insert ledger    │
+            └────────────┘  │ Save transaction │
+                            │ COMMIT           │
+                            └──────────────────┘
 ```
 
 ### Currency Exchange Bridge (Cross-Pair Conversion)
 
 When converting between two non-NGN currencies (e.g. EUR → GBP), the system bridges through NGN as an intermediate calculation step:
 
-```mermaid
-flowchart LR
-    A["50 EUR<br/><i>Source</i>"] -->|"x inverseRate(EUR)<br/>50 x 1581.68"| B["79,083.89 NGN<br/><i>Bridge (virtual)</i>"]
-    B -->|"x rate(GBP)<br/>79,083.89 x 0.000546"| C["43.18 GBP<br/><i>Target</i>"]
+```
+    ┌──────────┐      x inverseRate(EUR)      ┌──────────────┐      x rate(GBP)       ┌──────────┐
+    │  50 EUR  │ ──── 50 x 1581.68 ──────▶   │ 79,083.89 NGN│ ── 79,083.89 x 0.000546─▶│ 43.18 GBP│
+    │ (source) │                              │  (bridge,    │                          │ (target) │
+    └──────────┘                              │   virtual)   │                          └──────────┘
+                                              └──────────────┘
 
-    D["Cross rate = 43.18 / 50 = 0.8636"]
-
-    style A fill:#4a90d9,stroke:#333,color:#fff
-    style B fill:#f0ad4e,stroke:#333,color:#000
-    style C fill:#5cb85c,stroke:#333,color:#fff
-    style D fill:#eee,stroke:#999,color:#333
+    Cross rate = 43.18 / 50 = 0.8636
 ```
 
 > The NGN amount is calculated but never debited or credited — it only serves as a common denominator for rate calculation.
@@ -548,31 +552,35 @@ COMMIT;
 
 ### Concurrent Trade Scenario
 
-```mermaid
-sequenceDiagram
-    participant A as Thread A<br/>(BUY 100 USD, needs 150K NGN)
-    participant DB as PostgreSQL<br/>(NGN Balance: 200,000)
-    participant B as Thread B<br/>(BUY 200 USD, needs 300K NGN)
-
-    A->>DB: BEGIN TRANSACTION
-    B->>DB: BEGIN TRANSACTION
-
-    A->>DB: SELECT ... FOR UPDATE (NGN row)
-    Note over A,DB: Lock acquired
-
-    B->>DB: SELECT ... FOR UPDATE (NGN row)
-    Note over B,DB: Waiting (row locked)...
-
-    A->>DB: Read balance: 200,000 ✓
-    A->>DB: Debit 150,000
-    A->>DB: Balance = 50,000
-    A->>DB: COMMIT
-
-    Note over B,DB: Lock released
-
-    B->>DB: Lock acquired, Read: 50,000
-    Note over B,DB: 50,000 < 300,000 ✗
-    B->>DB: ROLLBACK (InsufficientBalanceError)
+```
+  Thread A                        PostgreSQL                      Thread B
+  (BUY 100 USD,                   (NGN Balance: 200,000)          (BUY 200 USD,
+   needs 150K NGN)                                                 needs 300K NGN)
+    │                                  │                                │
+    │  BEGIN TRANSACTION               │       BEGIN TRANSACTION        │
+    ├─────────────────────────────────▶│◀──────────────────────────────┤
+    │                                  │                                │
+    │  SELECT...FOR UPDATE (NGN row)   │                                │
+    ├─────────────────────────────────▶│                                │
+    │      ✓ Lock acquired             │                                │
+    │                                  │  SELECT...FOR UPDATE (NGN row) │
+    │                                  │◀──────────────────────────────┤
+    │                                  │      ⏳ WAITING (row locked)   │
+    │                                  │                                │
+    │  Read balance: 200,000 ✓         │                                │
+    │  Debit 150,000                   │                                │
+    │  Balance = 50,000                │                                │
+    │  COMMIT                          │                                │
+    ├─────────────────────────────────▶│                                │
+    │                                  │      ✓ Lock released           │
+    │                                  │                                │
+    │                                  │  Lock acquired                 │
+    │                                  │  Read balance: 50,000          │
+    │                                  │  50,000 < 300,000 ✗            │
+    │                                  │                                │
+    │                                  │  ROLLBACK                      │
+    │                                  │  (InsufficientBalanceError)    │
+    │                                  │◀──────────────────────────────┤
 ```
 
 ---
@@ -583,28 +591,48 @@ Financial endpoints (`/wallet/fund`, `/wallet/trade`, `/wallet/convert`) support
 
 ### Flow
 
-```mermaid
-flowchart TD
-    A["Client sends request<br/>Header: Idempotency-Key: uuid-123"] --> B{"Look up key<br/>in DB"}
-
-    B -->|"Key not found"| C["Create record<br/>status: PROCESSING"]
-    C --> D["Execute request"]
-    D --> E{"Success?"}
-    E -->|"Yes"| F["Update record<br/>status: COMPLETED<br/>cache response body"]
-    E -->|"No"| G["Delete record<br/>(allow retry)"]
-    F --> H["Return response"]
-
-    B -->|"Key found<br/>status: COMPLETED"| I["Return cached response<br/>(idempotent)"]
-
-    B -->|"Key found<br/>status: PROCESSING"| J["Return 409 Conflict<br/>(request in-flight)"]
-
-    style A fill:#4a90d9,stroke:#333,color:#fff
-    style B fill:#f0ad4e,stroke:#333,color:#000
-    style F fill:#5cb85c,stroke:#333,color:#fff
-    style H fill:#5cb85c,stroke:#333,color:#fff
-    style I fill:#5cb85c,stroke:#333,color:#fff
-    style J fill:#d9534f,stroke:#333,color:#fff
-    style G fill:#d9534f,stroke:#333,color:#fff
+```
+    Client sends request
+    Header: Idempotency-Key: uuid-123
+                    │
+                    ▼
+           ┌────────────────┐
+           │  Look up key   │
+           │  in database   │
+           └──┬──────┬────┬─┘
+              │      │    │
+        Not found    │    │
+              │      │    Key found
+              │      │    status: PROCESSING
+              ▼      │         │
+    ┌──────────────┐ │         ▼
+    │ Create record│ │  ┌──────────────┐
+    │ status:      │ │  │ Return 409   │
+    │ PROCESSING   │ │  │ Conflict     │
+    └──────┬───────┘ │  │ (in-flight)  │
+           │         │  └──────────────┘
+           ▼         │
+    ┌──────────────┐ │  Key found
+    │  Execute     │ │  status: COMPLETED
+    │  request     │ │         │
+    └──┬───────┬───┘ │         ▼
+       │       │     │  ┌──────────────┐
+    Success  Failure │  │ Return cached│
+       │       │     │  │ response     │
+       ▼       ▼     │  │ (idempotent) │
+┌──────────┐ ┌────────┐ └──────────────┘
+│ Update   │ │ Delete │
+│ record:  │ │ record │
+│ COMPLETED│ │ (allow │
+│ + cache  │ │ retry) │
+│ response │ └────────┘
+└────┬─────┘
+     │
+     ▼
+┌──────────┐
+│  Return  │
+│ response │
+└──────────┘
 ```
 
 ### Idempotency Key Lifecycle
